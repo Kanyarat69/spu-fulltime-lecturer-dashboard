@@ -3,651 +3,1279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Affairs Dashboard - SPU (อาจารย์ประจำ 2569)</title>
-
-    <!-- Google Fonts (IBM Plex Sans Thai) -->
+    <title>รายงานสรุปและวิเคราะห์ข้อมูลอาจารย์ ปีการศึกษา 2566 - 2568 | สำนักงานวิชาการ</title>
+    
+    <!-- External CDN Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css?v=5">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['IBM Plex Sans Thai', 'sans-serif'] },
                     colors: {
-                        spu: {
-                            navy: '#1e2542',
-                            pink: '#d94274',
-                            teal: '#07a697',
-                            bg: '#f3f6f9'
-                        }
+                        ink: { DEFAULT: '#13233D', soft: '#3C4D67' },
+                        navy: { DEFAULT: '#234876', 900: '#13233D', 800: '#1C3759', 700: '#234876', light: '#35608F' },
+                        teal: { DEFAULT: '#159A9C', dark: '#0F7678', light: '#E6F6F6' },
+                        rose: { DEFAULT: '#C81E63', light: '#E25A8B', tint: '#FCE7F0' },
+                        amber: { DEFAULT: '#CF8A22', tint: '#F8EAD0' }
                     },
-                    boxShadow: {
-                        'card': '0 4px 20px rgba(0, 0, 0, 0.04)',
-                        'soft': '0 2px 10px rgba(0, 0, 0, 0.02)',
+                    fontFamily: { 
+                        sans: ['Sarabun', 'IBM Plex Sans Thai', 'sans-serif'],
+                        disp: ['IBM Plex Sans Thai', 'sans-serif']
                     }
                 }
             }
         }
     </script>
-
-    <!-- Chart.js & SheetJS -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
 </head>
-<body class="flex h-screen font-sans text-slate-800 antialiased overflow-hidden bg-slate-50">
+<body class="min-h-screen flex flex-col antialiased selection:bg-rose-600 selection:text-white bg-[#EAEEF5]">
 
-    <!-- SIDEBAR -->
-    <aside class="w-[80px] hover:w-[260px] bg-spu-navy flex-shrink-0 flex flex-col relative shadow-xl z-50 h-full transition-all duration-300 group overflow-hidden print:hidden">
-        <div class="p-6 pt-8 pb-6 relative z-10 flex items-center justify-center group-hover:justify-start">
-            <div class="w-10 h-10 bg-gradient-to-br from-spu-pink to-pink-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-lg">S</div>
-            <div class="ml-4 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">
-                <h1 class="text-white text-2xl font-bold tracking-wider leading-none">SPU</h1>
+    <!-- Header Navigation Banner -->
+    <header class="top-banner sticky top-0 z-50 shadow-xl border-b border-navy-800 bg-navy-900">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-10 py-3">
+            <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3.5 min-w-0 flex-1">
+                    <div class="brand-logo-icon shrink-0 w-10 h-10 rounded-xl bg-rose text-white flex items-center justify-center text-lg shadow">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-xs font-semibold text-slate-300 tracking-wide font-disp whitespace-nowrap">สำนักงานวิชาการ &middot; Academic Affairs</div>
+                        <h1 id="header-main-title" class="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight font-disp whitespace-nowrap overflow-hidden text-ellipsis">
+                            รายงานวิเคราะห์ข้อมูลอาจารย์พิเศษ 
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 shrink-0 self-end xl:self-auto">
+                    <!-- ระบบสลับโหมดอาจารย์ (อาจารย์พิเศษ / อาจารย์ประจำ) -->
+                    <div class="flex items-center bg-navy-900/90 border border-white/25 rounded-xl p-1 shadow-inner" role="group" aria-label="สลับโหมดประเภทอาจารย์">
+                        <button type="button" id="btn-mode-special" class="reg-mode-btn active px-3.5 py-1.5 text-xs font-bold rounded-lg bg-rose text-white shadow transition font-disp whitespace-nowrap">
+                            <i class="fa-solid fa-user-tie mr-1.5"></i> อาจารย์พิเศษ
+                        </button>
+                        <button type="button" id="btn-mode-regular" class="reg-mode-btn px-3.5 py-1.5 text-xs font-bold rounded-lg text-slate-200 hover:text-white transition font-disp whitespace-nowrap">
+                            <i class="fa-solid fa-chalkboard-user mr-1.5"></i> อาจารย์ประจำ
+                        </button>
+                    </div>
+
+                    <div class="date-badge flex items-center space-x-2 mr-1 whitespace-nowrap text-xs text-slate-200 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+                        <span id="header-mode-dot" class="w-2 h-2 rounded-full bg-rose animate-pulse"></span>
+                        <span id="header-mode-badge-text" class="font-disp font-semibold">โหมด: อาจารย์พิเศษ</span>
+                    </div>
+
+                    <!-- กลุ่มปุ่มอัปโหลดเฉพาะโหมดอาจารย์พิเศษ (คงเดิม 100%) -->
+                    <div id="special-header-actions" class="flex flex-wrap items-center gap-2">
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="hidden">
+                        <button type="button" id="btn-upload-excel" class="flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-500 text-white shadow-md transition font-disp whitespace-nowrap">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> นำเข้า อ.พิเศษ
+                        </button>
+                        
+                        <input type="file" id="mission-excel-file-input" accept=".xlsx, .xls" class="hidden">
+                        <button type="button" id="btn-upload-mission-excel" class="flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-navy-light hover:bg-navy text-white shadow-md transition font-disp whitespace-nowrap">
+                            <i class="fa-solid fa-file-invoice-dollar mr-1.5"></i> นำเข้า ประมาณการพันธกิจ
+                        </button>
+
+                        <button type="button" id="btn-export-csv" class="hidden sm:flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow-sm transition font-disp whitespace-nowrap">
+                            <i class="fa-solid fa-file-csv mr-1.5"></i> ส่งออก CSV
+                        </button>
+                    </div>
+
+                    <!-- กลุ่มปุ่มนำเข้าข้อมูลเฉพาะโหมดอาจารย์ประจำ (เชื่อม ID ตรงกับ input ด้านล่าง) -->
+                    <div id="regular-header-actions" class="hidden flex-wrap items-center gap-2">
+                        <input type="file" id="btn-import-regular-roster" accept=".xlsx, .xls, .csv" multiple class="hidden">
+                        <button type="button" onclick="document.getElementById('btn-import-regular-roster').click()" class="flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-navy-light hover:bg-navy text-white border border-white/20 shadow-md transition font-disp whitespace-nowrap">
+                            <i class="fa-solid fa-users-rectangle mr-1.5"></i> 1. นำเข้ารายชื่ออาจารย์ประจำ
+                        </button>
+
+                        <input type="file" id="btn-import-regular-mission" accept=".xlsx, .xls, .csv" multiple class="hidden">
+                        <button type="button" onclick="document.getElementById('btn-import-regular-mission').click()" class="flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#159A9C] hover:bg-[#0F7678] text-white shadow-md transition font-disp whitespace-nowrap">
+                            <i class="fa-solid fa-file-signature mr-1.5"></i> 2. นำเข้าพันธกิจของทุกคณะ
+                        </button>
+                    </div>
+
+                    <button type="button" id="btn-presentation-mode" class="flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-amber-600 hover:bg-amber-500 text-white shadow-md transition font-disp whitespace-nowrap">
+                        <i class="fa-solid fa-desktop mr-1.5"></i> โหมดนำเสนอ
+                    </button>
+                </div>
             </div>
         </div>
 
-        <nav class="flex-1 py-4 flex flex-col gap-2 relative z-10" id="sidebar-nav">
-            <a href="#" data-view="overview" class="nav-item active flex items-center gap-4 px-6 py-3.5 font-medium text-sm text-white bg-gradient-to-r from-spu-pink to-[#9f1239] border-l-4 border-white shadow-md transition-all">
-                <i class="fa-solid fa-chart-pie w-5 text-center text-lg"></i> 
-                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">01 ภาพรวมพันธกิจ</span>
-            </a>
-            <a href="#" data-view="analytics" class="nav-item flex items-center gap-4 px-6 py-3.5 font-medium text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all border-l-4 border-transparent">
-                <i class="fa-solid fa-layer-group w-5 text-center text-lg"></i> 
-                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">02 วิเคราะห์รายคณะ</span>
-            </a>
-            <a href="#" data-view="courses" class="nav-item flex items-center gap-4 px-6 py-3.5 font-medium text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all border-l-4 border-transparent">
-                <i class="fa-solid fa-book-open w-5 text-center text-lg"></i> 
-                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">03 รายวิชาและตารางสอน</span>
-            </a>
-            <div class="my-2 border-t border-white/10 mx-4"></div>
-            <a href="#" id="nav-export-all" class="flex items-center gap-4 px-6 py-3.5 font-medium text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all border-l-4 border-transparent">
-                <i class="fa-solid fa-file-excel w-5 text-center text-lg"></i> 
-                <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">ส่งออกรายงาน Excel</span>
-            </a>
-        </nav>
-    </aside>
+        <!-- Tab Navigation Bar (โหมดอาจารย์พิเศษ) -->
+        <div id="special-nav-tabs-bar" class="nav-tabs-bar bg-navy-800 border-t border-white/10">
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-10 flex space-x-2 overflow-x-auto custom-scrollbar py-1.5">
+                <button type="button" class="nav-tab active transition flex items-center space-x-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-white/15 font-disp" data-tab="tab-overview">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>ภาพรวมระบบ (Executive Overview)</span>
+                </button>
+                <button type="button" class="nav-tab transition flex items-center space-x-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white font-disp" data-tab="tab-faculty">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span>วิเคราะห์รายคณะ (Faculty Deep-Dive)</span>
+                </button>
+                <button type="button" class="nav-tab transition flex items-center space-x-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white font-disp" data-tab="tab-lecturer">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>ค้นหารายบุคคล (Lecturer Search)</span>
+                </button>
+            </div>
+        </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="flex-1 flex flex-col h-screen overflow-hidden">
-        
-        <!-- HEADER -->
-        <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-soft print:hidden">
-            <div class="px-8 py-4">
-                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-                    <!-- Title & View Switcher Pills -->
-                    <div class="flex flex-col lg:flex-row lg:items-center gap-4">
-                        <div>
-                            <div class="text-xs font-semibold text-spu-pink tracking-wider uppercase mb-0.5 flex items-center gap-2">
-                                <i class="fa-solid fa-building-columns"></i> สำนักงานวิชาการ · Academic Affairs
-                            </div>
-                            <h1 class="text-xl sm:text-2xl font-bold text-slate-800 m-0 leading-tight">
-                                วิเคราะห์ข้อมูลอาจารย์ประจำ ปีการศึกษา 2569
-                            </h1>
-                        </div>
+        <!-- Tab Navigation Bar (โหมดอาจารย์ประจำ 4 เมนู) -->
+        <div id="regular-nav-tabs-bar" class="hidden nav-tabs-bar bg-navy-800 border-t border-white/10">
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-10 flex space-x-2 overflow-x-auto custom-scrollbar py-1.5">
+                <button type="button" class="reg-nav-tab active transition flex items-center space-x-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#159A9C] shadow font-disp" data-reg-tab="reg-tab-overview">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>1. ภาพรวม (Overview)</span>
+                </button>
+                <button type="button" class="reg-nav-tab transition flex items-center space-x-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white font-disp" data-reg-tab="reg-tab-faculty">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span>2. วิเคราะห์รายคณะ (Faculty Analysis)</span>
+                </button>
+                <button type="button" class="reg-nav-tab transition flex items-center space-x-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white font-disp" data-reg-tab="reg-tab-lecturer">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>3. ค้นหารายบุคคล (Lecturer Search)</span>
+                </button>
+                <button type="button" class="reg-nav-tab transition flex items-center space-x-2 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white font-disp" data-reg-tab="reg-tab-schedule">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>4. ตารางสอนอาจารย์ (Teaching Schedule)</span>
+                </button>
+            </div>
+        </div>
 
-                        <!-- Quick Tab Switcher (3 Views) -->
-                        <div class="inline-flex flex-wrap bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start lg:self-auto gap-1">
-                            <button type="button" data-view="overview" class="tab-switch-btn active px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-spu-navy shadow-2xs transition-all">
-                                01 ภาพรวมรายบุคคล
-                            </button>
-                            <button type="button" data-view="analytics" class="tab-switch-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all">
-                                02 เจาะลึกรายคณะ
-                            </button>
-                            <button type="button" data-view="courses" class="tab-switch-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all">
-                                03 รายวิชาและตารางสอน
-                            </button>
-                        </div>
+        <!-- Global Dynamic Filter Bar (โหมดอาจารย์พิเศษ) -->
+        <div id="special-global-filter-bar" class="bg-white border-t border-b border-slate-200 shadow-sm py-2 px-4 sm:px-6 lg:px-10">
+            <div class="max-w-full mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+                    <span class="font-bold text-ink flex items-center font-disp whitespace-nowrap">
+                        <i class="fa-solid fa-filter text-rose mr-1.5"></i>ตัวกรอง Real-time:
+                    </span>
+                    
+                    <div class="flex items-center space-x-1 bg-slate-100 rounded-lg p-1 border border-slate-200" id="year-filter-group">
+                        <button type="button" class="year-filter-btn active px-2.5 py-0.5 rounded text-xs font-bold bg-navy text-white shadow-sm transition font-disp whitespace-nowrap" data-year="ALL">ทั้งหมด (66-68)</button>
+                        <button type="button" class="year-filter-btn px-2.5 py-0.5 rounded text-xs font-bold text-slate-600 hover:text-ink transition font-disp whitespace-nowrap" data-year="2566">ปี 2566</button>
+                        <button type="button" class="year-filter-btn px-2.5 py-0.5 rounded text-xs font-bold text-slate-600 hover:text-ink transition font-disp whitespace-nowrap" data-year="2567">ปี 2567</button>
+                        <button type="button" class="year-filter-btn px-2.5 py-0.5 rounded text-xs font-bold text-slate-600 hover:text-ink transition font-disp whitespace-nowrap" data-year="2568">ปี 2568</button>
                     </div>
 
-                    <!-- Actions -->
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <label for="file-upload-excel" class="cursor-pointer bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors shadow-2xs flex items-center gap-2">
-                            <i class="fa-solid fa-file-excel text-emerald-600"></i> นำเข้าพันธกิจ (.xlsx)
-                            <input type="file" id="file-upload-excel" accept=".xlsx,.xls,.csv" class="hidden">
-                        </label>
-                        <label for="file-upload-schedule" class="cursor-pointer bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors shadow-2xs flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-check text-spu-pink"></i> นำเข้าตารางสอน (.xlsx)
-                            <input type="file" id="file-upload-schedule" accept=".xlsx,.xls,.csv" class="hidden">
-                        </label>
-                        <button id="btn-reset-sample" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5" title="กลับไปใช้ข้อมูลตัวอย่าง">
-                            <i class="fa-solid fa-rotate-left text-xs"></i> ตัวอย่าง
-                        </button>
-                        <button id="btn-print-report" class="bg-spu-navy hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-2xs flex items-center gap-2">
-                            <i class="fa-solid fa-print"></i> พิมพ์
-                        </button>
-                    </div>
+                    <select id="global-semester-filter" class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-lg focus:ring-rose focus:border-rose py-1 px-2 font-bold font-disp">
+                        <option value="ALL">ทุกภาคการศึกษา (1, 2, Summer)</option>
+                        <option value="1">ภาคเรียนที่ 1</option>
+                        <option value="2">ภาคเรียนที่ 2</option>
+                        <option value="S">ภาคฤดูร้อน (Summer)</option>
+                    </select>
+
+                    <select id="global-degree-filter" class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-lg focus:ring-rose focus:border-rose py-1 px-2 font-bold font-disp">
+                        <option value="ALL">ทุกระดับคุณวุฒิ</option>
+                        <option value="ปริญญาเอก">ปริญญาเอก</option>
+                        <option value="ปริญญาโท">ปริญญาโท</option>
+                        <option value="ปริญญาตรี">ปริญญาตรี</option>
+                        <option value="ไม่ระบุคุณวุฒิ">ไม่ระบุคุณวุฒิ</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-2 text-xs font-semibold text-ink-soft bg-rose-tint/50 px-3 py-1 rounded-full border border-rose-tint whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-rose animate-pulse"></span>
+                    <span>สถานะข้อมูล อ.พิเศษ: <strong id="filter-status-rows">0 รายการสอน</strong> | <strong id="filter-status-lecturers">0 อาจารย์ (ไม่ซ้ำ)</strong> | <strong id="filter-status-missions" class="text-rose font-bold">0 รายการพันธกิจ</strong></span>
                 </div>
             </div>
-        </header>
+        </div>
 
-        <!-- MAIN SCROLLABLE AREA -->
-        <main class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-8 pb-20 bg-[#f3f6f9]" id="print-area">
-            
-            <!-- TOP INSTRUCTION BANNER -->
-            <div class="bg-[#fefce8] border border-[#fde047] rounded-2xl px-5 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-2xs mb-6 print:hidden">
-                <div class="text-sm text-slate-700">
-                    <strong class="font-bold text-slate-900">คำแนะนำ:</strong> กดปุ่ม <strong class="font-semibold text-slate-900">“นำเข้าพันธกิจ”</strong> และ <strong class="font-semibold text-slate-900">“นำเข้าตารางสอน”</strong> เพื่อเชื่อมโยงข้อมูลอาจารย์กับรายวิชาสอนครบทั้ง 3 หน้า
-                </div>
-                <div id="status-banner-badge" class="bg-[#fef9c3] border border-[#facc15] text-amber-800 text-xs font-semibold px-3.5 py-1.5 rounded-lg whitespace-nowrap">
-                    สถานะ: แสดงข้อมูลตัวอย่าง (ปีการศึกษา 2569)
-                </div>
-            </div>
+        <!-- Filter Bar เฉพาะโหมดอาจารย์ประจำ (สำหรับแท็บภาพรวม) -->
+        <div id="regular-global-filter-bar" class="hidden bg-white border-t border-b border-slate-200 shadow-sm py-2 px-4 sm:px-6 lg:px-10">
+            <div class="max-w-full mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+                    <span class="font-bold text-ink flex items-center font-disp whitespace-nowrap">
+                        <i class="fa-solid fa-filter text-[#159A9C] mr-1.5"></i>ตัวกรองอาจารย์ประจำ:
+                    </span>
 
-            <!-- ======================================================================= -->
-            <!-- VIEW 01: OVERVIEW (ภาพรวมข้อมูลอาจารย์ประจำ) -->
-            <!-- ======================================================================= -->
-            <div id="view-overview" class="space-y-6">
-                
-                <!-- SECTION HEADER 01 -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-10 h-10 rounded-full bg-pink-100 text-spu-pink font-bold text-sm flex items-center justify-center shrink-0">
-                            01
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-800 leading-tight">ภาพรวมข้อมูลอาจารย์ประจำ</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">สรุปสถิติภาระงานสอน สัดส่วนการสอนครบเกณฑ์ และยอดพันธกิจยกไป</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" data-view="analytics" class="tab-switch-trigger inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-spu-navy hover:bg-slate-50 shadow-2xs transition">
-                            ไปหน้า 02 วิเคราะห์รายคณะ <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
-                    </div>
+                    <select id="reg-faculty-filter" class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-lg focus:ring-navy focus:border-navy py-1 px-2.5 font-bold font-disp">
+                        <option value="ALL">ทุกคณะ (ทั้งหมด)</option>
+                    </select>
                 </div>
 
-                <!-- 1. KPI CARDS SECTION (3 Cards) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    <!-- Card 1: อาจารย์ประจำทั้งหมด -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[5px] border-l-spu-pink p-6 flex justify-between items-start hover:shadow-md transition-all cursor-pointer group" id="kpi-total-faculty">
-                        <div class="flex flex-col justify-between h-full">
-                            <p class="text-sm font-semibold text-slate-600">อาจารย์ประจำทั้งหมด (คน)</p>
-                            <h3 class="text-4xl font-bold text-slate-800 my-3 tracking-tight" id="val-kpi-total">0</h3>
-                            <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-spu-pink group-hover:underline mt-1 print:hidden">
-                                <i class="fa-solid fa-file-excel"></i> คลิกส่งออก Excel ทั้งหมด
-                            </div>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-pink-50 text-spu-pink flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-user-tie text-xl"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 2: สอนครบ / เกินเกณฑ์ -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[5px] border-l-emerald-500 p-6 flex justify-between items-start hover:shadow-md transition-all cursor-pointer group" id="kpi-match-count">
-                        <div class="flex flex-col justify-between h-full">
-                            <p class="text-sm font-semibold text-slate-600">สอนครบ / เกินเกณฑ์ (คน)</p>
-                            <div class="flex items-baseline gap-2.5 my-3">
-                                <h3 class="text-4xl font-bold text-slate-800 tracking-tight" id="val-kpi-match">0</h3>
-                                <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100" id="val-sum-over">+0.00 นก.</span>
-                            </div>
-                            <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 group-hover:underline mt-1 print:hidden">
-                                <i class="fa-solid fa-file-excel"></i> คลิกโหลด Excel กลุ่มครบ/เกินเกณฑ์
-                            </div>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-circle-check text-xl"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 3: สอนไม่ครบ / ขาดเกณฑ์ -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[5px] border-l-rose-500 p-6 flex justify-between items-start hover:shadow-md transition-all cursor-pointer group" id="kpi-under-count">
-                        <div class="flex flex-col justify-between h-full">
-                            <p class="text-sm font-semibold text-slate-600">สอนไม่ครบพันธกิจ (คน)</p>
-                            <div class="flex items-baseline gap-2.5 my-3">
-                                <h3 class="text-4xl font-bold text-slate-800 tracking-tight" id="val-kpi-under">0</h3>
-                                <span class="text-xs font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100" id="val-sum-under">0.00 นก.</span>
-                            </div>
-                            <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 group-hover:underline mt-1 print:hidden">
-                                <i class="fa-solid fa-file-excel"></i> คลิกโหลด Excel กลุ่มขาดเกณฑ์
-                            </div>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- 2. DATA TABLE -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 bg-white">
-                        <div>
-                            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                                <i class="fa-solid fa-list-ul text-spu-pink"></i> รายชื่อและการคำนวณพันธกิจรายบุคคล
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">คลิกที่แถวรายชื่อเพื่อเปิดดูรายละเอียดรายวิชาและพิมพ์ใบสรุปรายบุคคล</p>
-                        </div>
-                        
-                        <!-- Filters & Search -->
-                        <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto print:hidden">
-                            <select id="filter-dept" class="bg-slate-50 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-spu-pink focus:bg-white transition-all">
-                                <option value="ALL">ทุกคณะ / สาขาวิชา</option>
-                            </select>
-
-                            <select id="filter-status" class="bg-slate-50 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-sm focus:outline-none focus:border-spu-pink focus:bg-white transition-all">
-                                <option value="ALL">ทุกสถานะ</option>
-                                <option value="MATCH_OVER">ครบ / เกินเกณฑ์</option>
-                                <option value="UNDER">ขาดเกณฑ์ (ติดลบ)</option>
-                            </select>
-
-                            <div class="relative flex-1 sm:w-60">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                <input type="text" id="filter-search" placeholder="ค้นหาชื่ออาจารย์..." class="bg-slate-50 border border-slate-200 text-slate-700 pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none focus:border-spu-pink focus:bg-white focus:ring-2 focus:ring-pink-100 w-full transition-all">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50/80 text-slate-500 border-b border-slate-200">
-                                <tr>
-                                    <th class="w-16 py-3.5 px-6 font-semibold text-center">#</th>
-                                    <th class="py-3.5 px-6 font-semibold">ข้อมูลอาจารย์</th>
-                                    <th class="py-3.5 px-6 font-semibold w-44 text-center">สถานะ</th>
-                                    <th class="py-3.5 px-6 font-semibold">รายละเอียดการคำนวณพันธกิจ (หน่วยกิต)</th>
-                                    <th class="w-24 py-3.5 px-4 font-semibold text-center print:hidden">รายละเอียด</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body" class="divide-y divide-slate-100 bg-white">
-                                <!-- JS Render Here -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="flex items-center space-x-2 text-xs font-semibold text-ink-soft bg-[#E6F6F6] px-3 py-1 rounded-full border border-[#159A9C]/30 whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-[#159A9C] animate-pulse"></span>
+                    <span>ฐานรายชื่อ อ.ประจำ: <strong id="reg-status-lecturers">0 คน</strong> | พันธกิจที่จับคู่แล้ว: <strong id="reg-status-missions" class="text-[#0F7678] font-bold">0 คน</strong></span>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <!-- ======================================================================= -->
-            <!-- VIEW 02: ANALYTICS & PRIORITY (เจาะลึกรายคณะและจัดอันดับจุดวิกฤต) -->
-            <!-- ======================================================================= -->
-            <div id="view-analytics" class="space-y-6 hidden">
-                
-                <!-- SECTION HEADER 02 -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-10 h-10 rounded-full bg-indigo-100 text-spu-navy font-bold text-sm flex items-center justify-center shrink-0">
-                            02
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-800 leading-tight">วิเคราะห์เจาะลึกรายคณะและจุดวิกฤตภาระงาน</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">เปรียบเทียบยอดพันธกิจสุทธิแยกตามคณะ/สาขา และจัดอันดับกลุ่มเร่งด่วนเพื่อการบริหารจัดการ</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" data-view="courses" class="tab-switch-trigger inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-spu-navy hover:bg-slate-50 shadow-2xs transition">
-                            ไปหน้า 03 รายวิชาและตารางสอน <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- PART 1: FACULTY COMPARISON CHART & SUMMARY TABLE -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    
-                    <!-- Horizontal Bar Chart (7 cols) -->
-                    <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-base font-bold text-slate-800">ยอดพันธกิจสุทธิ (ขาด / เกิน) แยกตามคณะ</h3>
-                                <p class="text-xs text-slate-500 mt-0.5">แท่งสีเขียว = พันธกิจรวมเกินเกณฑ์ (นก.) · แท่งสีแดง = พันธกิจรวมขาดเกณฑ์ (นก.)</p>
-                            </div>
-                            <span class="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md">หน่วย: หน่วยกิต</span>
-                        </div>
-                        <div class="relative flex-1 min-h-[260px] w-full">
-                            <canvas id="facultyNetChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Faculty Breakdown Summary Cards/Table (5 cols) -->
-                    <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
-                        <div class="mb-4">
-                            <h3 class="text-base font-bold text-slate-800">สรุปสถานะรายคณะ / สาขาวิชา</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">คลิกที่ชื่อคณะเพื่อกรองดูรายชื่ออาจารย์ในหน้ารวม</p>
-                        </div>
-                        <div class="overflow-x-auto flex-1">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
-                                    <tr>
-                                        <th class="py-2.5 px-3 font-semibold">คณะ / สาขา</th>
-                                        <th class="py-2.5 px-2 font-semibold text-center">รวม</th>
-                                        <th class="py-2.5 px-2 font-semibold text-center text-emerald-600">ครบ/เกิน</th>
-                                        <th class="py-2.5 px-2 font-semibold text-center text-rose-600">ขาด</th>
-                                        <th class="py-2.5 px-3 font-semibold text-right">สุทธิ (นก.)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="faculty-summary-body" class="divide-y divide-slate-100">
-                                    <!-- JS Render -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PART 2: PRIORITY ACTION LISTS (2 Columns: Top Underload vs Top Overload) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    
-                    <!-- Left: Top Underload -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-rose-100 overflow-hidden">
-                        <div class="px-6 py-4 bg-rose-50/60 border-b border-rose-100 flex justify-between items-center">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
-                                    <i class="fa-solid fa-arrow-trend-down"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-bold text-slate-800">กลุ่มต้องเร่งเติมภาระงาน (สอนขาดเกณฑ์)</h3>
-                                    <p class="text-[11px] text-rose-600">เรียงตามจำนวนหน่วยกิตที่ติดลบมากที่สุด</p>
-                                </div>
-                            </div>
-                            <span id="badge-under-priority" class="text-xs font-bold bg-rose-600 text-white px-2.5 py-0.5 rounded-full">0 คน</span>
-                        </div>
-                        <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto custom-scroll" id="list-top-underload">
-                            <!-- JS Render -->
-                        </div>
-                    </div>
-
-                    <!-- Right: Top Overload -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden">
-                        <div class="px-6 py-4 bg-emerald-50/60 border-b border-emerald-100 flex justify-between items-center">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-bold text-slate-800">กลุ่มภาระงานเกินเกณฑ์สูงสุด (Overload)</h3>
-                                    <p class="text-[11px] text-emerald-700">เรียงตามยอดพันธกิจยกไปที่เป็นบวกสูงสุด</p>
-                                </div>
-                            </div>
-                            <span id="badge-over-priority" class="text-xs font-bold bg-emerald-600 text-white px-2.5 py-0.5 rounded-full">0 คน</span>
-                        </div>
-                        <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto custom-scroll" id="list-top-overload">
-                            <!-- JS Render -->
-                        </div>
-                    </div>
-
-                </div>
-
+    <!-- Notice Box (โหมดอาจารย์พิเศษ) -->
+    <div id="data-empty-notice" class="max-w-full mx-auto w-full px-4 sm:px-6 lg:px-10 pt-4">
+        <div class="rounded-2xl border border-amber-300 bg-amber-tint/40 px-4 py-3 text-sm text-ink flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-sm">
+            <div>
+                <strong class="font-disp">คำแนะนำการเริ่มต้นใช้งาน (อาจารย์พิเศษ):</strong> กรุณากดปุ่ม <strong>“นำเข้า อ.พิเศษ”</strong> หรือ <strong>“นำเข้า ประมาณการพันธกิจ”</strong> ด้านบนเพื่อประมวลผลข้อมูลเข้าสู่ Dashboard
             </div>
-
-            <!-- ======================================================================= -->
-            <!-- VIEW 03: COURSE & SECTION DIRECTORY (ตารางสอนรูปแบบ Excel แยกตามอาจารย์/คณะ) -->
-            <!-- ======================================================================= -->
-            <div id="view-courses" class="space-y-6 hidden">
-                
-                <!-- SECTION HEADER 03 -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-10 h-10 rounded-full bg-teal-100 text-spu-teal font-bold text-sm flex items-center justify-center shrink-0">
-                            03
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-800 leading-tight">ตารางสอนและรายวิชาประจำภาค (รูปแบบตาราง Excel)</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">เลือกดูแยกตามคณะ/สาขาวิชา และรายชื่ออาจารย์ผู้สอน พร้อมแถวสรุปรวมหน่วยกิตท้ายรายชื่อ</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="btn-export-courses" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition">
-                            <i class="fa-solid fa-file-excel"></i> ส่งออกตารางรายวิชา (.xlsx)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 1. COURSE KPI CARDS (3 Cards Matching Design System) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    <!-- Card 1: จำนวนรายวิชาที่เปิดสอน -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[5px] border-l-spu-teal p-6 flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-semibold text-slate-600">รายวิชาที่เปิดสอน (ไม่ซ้ำรหัส)</p>
-                            <h3 class="text-4xl font-bold text-slate-800 my-3 tracking-tight" id="val-course-unique">0</h3>
-                            <p class="text-xs text-slate-400">นับแยกตามรหัสวิชาทั้งหมดในกลุ่มที่เลือก</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-teal-50 text-spu-teal flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-book text-xl"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 2: จำนวนกลุ่มเรียน (Section) และหน่วยกิตรวม -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[5px] border-l-indigo-500 p-6 flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-semibold text-slate-600">กลุ่มเรียนทั้งหมด (Sections)</p>
-                            <div class="flex items-baseline gap-2.5 my-3">
-                                <h3 class="text-4xl font-bold text-slate-800 tracking-tight" id="val-course-sections">0</h3>
-                                <span class="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100" id="val-course-credits">รวม 0.00 นก.</span>
-                            </div>
-                            <p class="text-xs text-slate-400">ผลรวมทุกกลุ่มเรียนที่จัดสรรผู้สอน</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-chalkboard-user text-xl"></i>
-                        </div>
-                    </div>
-
-                    <!-- Card 3: รายการรอตรวจสอบ (Audit Alert) -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[5px] border-l-amber-500 p-6 flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-semibold text-slate-600">รายการรอตรวจสอบข้อมูล (Audit)</p>
-                            <h3 class="text-4xl font-bold text-slate-800 my-3 tracking-tight" id="val-course-audit">0</h3>
-                            <p class="text-xs text-amber-700 font-medium" id="val-course-audit-desc">ยังไม่พบชื่อผู้สอนในฐานพันธกิจ / หน่วยกิตเป็น 0</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-clipboard-check text-xl"></i>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- 2. TIMETABLE & EXCEL-STYLE SPREADSHEET VIEW -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-300 overflow-hidden">
-                    <!-- Filter & Mode Toolbar -->
-                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex flex-col gap-3">
-                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
-                            <div>
-                                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                                    <i class="fa-solid fa-calendar-days text-spu-teal"></i> ตารางสอนรายวันและรายวิชาประจำภาค
-                                </h3>
-                                <p class="text-xs text-slate-500 mt-0.5">เลือกดูแบบตารางสอนรายวัน (จันทร์ - อาทิตย์) หรือแบบตาราง Excel แยกตามอาจารย์</p>
-                            </div>
-
-                            <!-- View Mode Switcher (Weekly Grid vs Excel List) -->
-                            <div class="inline-flex bg-slate-200/80 p-1 rounded-xl border border-slate-300/70 gap-1">
-                                <button type="button" id="btn-mode-timetable" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-spu-navy text-white shadow-2xs transition-all flex items-center gap-1.5">
-                                    <i class="fa-solid fa-calendar-week"></i> ตารางสอนรายวัน (จ.-อา.)
-                                </button>
-                                <button type="button" id="btn-mode-excel" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
-                                    <i class="fa-solid fa-table-cells"></i> ตารางรายการแบบ Excel
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Multi-Filter Controls -->
-                        <div class="flex flex-wrap items-center gap-2.5 pt-2 border-t border-slate-200/70">
-                            <!-- 1. Filter by Faculty / Department -->
-                            <select id="filter-course-dept" class="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none focus:border-spu-teal transition-all min-w-[165px]">
-                                <option value="ALL">ทุกคณะ / สาขาวิชา</option>
-                            </select>
-
-                            <!-- 2. Filter by Lecturer Name -->
-                            <select id="filter-course-lecturer" class="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none focus:border-spu-teal transition-all min-w-[185px]">
-                                <option value="ALL">อาจารย์ผู้สอนทั้งหมด</option>
-                            </select>
-
-                            <!-- 3. Filter by Day of Week -->
-                            <select id="filter-course-day" class="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none focus:border-spu-teal transition-all">
-                                <option value="ALL">ทุกวันเรียน (จ.-อา.)</option>
-                                <option value="จันทร์">วันจันทร์</option>
-                                <option value="อังคาร">วันอังคาร</option>
-                                <option value="พุธ">วันพุธ</option>
-                                <option value="พฤหัสบดี">วันพฤหัสบดี</option>
-                                <option value="ศุกร์">วันศุกร์</option>
-                                <option value="เสาร์">วันเสาร์</option>
-                                <option value="อาทิตย์">วันอาทิตย์</option>
-                            </select>
-
-                            <!-- 4. Filter by Audit Status -->
-                            <select id="filter-course-audit" class="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none focus:border-spu-teal transition-all">
-                                <option value="ALL">ทุกสถานะข้อมูล</option>
-                                <option value="LINKED">เชื่อมโยงฐานพันธกิจแล้ว</option>
-                                <option value="AUDIT">รายการต้องตรวจสอบ</option>
-                            </select>
-
-                            <!-- 5. Free Text Search -->
-                            <div class="relative flex-1 min-w-[180px]">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                <input type="text" id="filter-course-search" placeholder="ค้นหารหัสวิชา / ชื่อวิชา / ห้องเรียน..." class="bg-white border border-slate-300 text-slate-700 pl-8 pr-3 py-2 rounded-xl text-xs focus:outline-none focus:border-spu-teal w-full transition-all">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MODE A: WEEKLY TIMETABLE VIEW (ตารางสอนรายวัน จันทร์ - อาทิตย์) -->
-                    <div id="timetable-grid-container" class="p-5 bg-slate-50/40">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse border border-slate-300 bg-white">
-                                <thead>
-                                    <tr class="bg-[#1e2542] text-white select-none">
-                                        <th class="w-32 py-3 px-3 font-bold text-center border-r border-slate-600">วันเรียน</th>
-                                        <th class="py-3 px-4 font-bold border-r border-slate-600">รายวิชาที่เปิดสอน (ช่วงเวลา · รหัสวิชา · ชื่อวิชา · กลุ่มเรียน · ห้องเรียน · อาจารย์ผู้สอน)</th>
-                                        <th class="w-28 py-3 px-3 font-bold text-center">รวมรายวิชา</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="weekly-timetable-body" class="divide-y divide-slate-300">
-                                    <!-- JS Render Weekly Day-by-Day Schedule Here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- MODE B: EXCEL-LIKE LIST VIEW (ตารางรายการแบบ Excel) -->
-                    <div id="excel-table-container" class="overflow-x-auto hidden">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-[#1e2542] text-white border-b border-slate-400 select-none">
-                                    <th class="w-12 py-3 px-3 font-semibold text-center border-r border-slate-600">ลำดับ</th>
-                                    <th class="w-40 py-3 px-3 font-semibold border-r border-slate-600">คณะ / สาขาวิชา</th>
-                                    <th class="w-44 py-3 px-3 font-semibold border-r border-slate-600">ชื่อ - สกุล อาจารย์ผู้สอน</th>
-                                    <th class="w-24 py-3 px-3 font-semibold text-center border-r border-slate-600">รหัสวิชา</th>
-                                    <th class="py-3 px-3 font-semibold border-r border-slate-600">ชื่อรายวิชา</th>
-                                    <th class="w-16 py-3 px-2 font-semibold text-center border-r border-slate-600">กลุ่ม</th>
-                                    <th class="w-24 py-3 px-2 font-semibold text-center border-r border-slate-600">วันเรียน</th>
-                                    <th class="w-28 py-3 px-2 font-semibold text-center border-r border-slate-600">เวลาเรียน</th>
-                                    <th class="w-24 py-3 px-2 font-semibold text-center border-r border-slate-600">ห้องเรียน</th>
-                                    <th class="w-20 py-3 px-3 font-semibold text-right border-r border-slate-600">หน่วยกิต</th>
-                                    <th class="w-32 py-3 px-3 font-semibold text-center">สถานะ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="course-table-body" class="bg-white divide-y divide-slate-300">
-                                <!-- JS Render Excel-Style Grouped Rows Here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
+            <div class="text-xs text-amber-900 bg-amber-tint px-3 py-1 rounded-lg border border-amber-300 font-semibold whitespace-nowrap font-disp">
+                สถานะ: <span id="special-upload-status-text">รอการอัปโหลดไฟล์ Excel</span>
             </div>
-
-        </main>
+        </div>
     </div>
 
-    <!-- ======================================================================= -->
-    <!-- SLIDE-OVER DRAWER: INDIVIDUAL WORKLOAD DETAIL (รายละเอียดรายบุคคล) -->
-    <!-- ======================================================================= -->
-    <div id="lecturer-drawer-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-2xs z-50 hidden transition-opacity"></div>
-    <aside id="lecturer-drawer" class="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
-        
-        <!-- Drawer Header -->
-        <div class="px-6 py-5 bg-spu-navy text-white flex justify-between items-start shrink-0">
+    <!-- Notice Box (โหมดอาจารย์ประจำ) -->
+    <div id="reg-data-empty-notice" class="hidden max-w-full mx-auto w-full px-4 sm:px-6 lg:px-10 pt-4">
+        <div class="rounded-2xl border border-[#159A9C]/40 bg-[#E6F6F6]/70 px-4 py-3 text-sm text-ink flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-sm">
             <div>
-                <span class="text-[11px] font-semibold text-pink-300 uppercase tracking-wider">รายละเอียดพันธกิจและรายวิชาสอน</span>
-                <h3 id="drawer-lecturer-name" class="text-xl font-bold mt-0.5">-</h3>
-                <p id="drawer-lecturer-dept" class="text-xs text-slate-300 mt-0.5">-</p>
+                <strong class="font-disp">ขั้นตอนการใช้งานโหมดอาจารย์ประจำ:</strong> กดปุ่ม <strong>“เลือกไฟล์ Excel”</strong> (ส่วนที่ 1 รายชื่ออาจารย์ประจำ) และ/หรือ <strong>“อัปโหลดไฟล์ Excel รายคณะ”</strong> (ส่วนที่ 2 พันธกิจของทุกคณะ เลือกได้หลายไฟล์พร้อมกัน)
             </div>
-            <button id="btn-close-drawer" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <div class="text-xs text-[#0F7678] bg-white px-3 py-1 rounded-lg border border-[#159A9C]/30 font-semibold whitespace-nowrap font-disp">
+                สถานะรวม: <span id="reg-upload-status-label">รอการนำเข้าข้อมูล</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-full w-full mx-auto px-4 sm:px-6 lg:px-10 py-6">
+
+        <!-- ======================================================================
+             WRAPPER A: DASHBOARD อาจารย์พิเศษ (คงโครงสร้างและ ID เดิมครบถ้วน)
+             ====================================================================== -->
+        <div id="special-dashboard-wrapper">
+            <!-- TAB 1: EXECUTIVE OVERVIEW -->
+            <div id="tab-overview" class="tab-content block space-y-8">
+                <div>
+                    <div class="shead">
+                        <div class="snum">01</div>
+                        <div class="flex-1 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-xl font-bold text-ink font-disp">ภาพรวมข้อมูลอาจารย์พิเศษ</h2>
+                                <p class="text-xs text-muted">สรุปสถิติทั่วไป สัดส่วนคุณวุฒิ และแนวโน้มย้อนหลัง 3 ปี</p>
+                            </div>
+                            <span class="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full font-disp">ภาพรวม</span>
+                        </div>
+                    </div>
+
+                    <!-- 4 KPI Summary Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div onclick="exportFilteredExcel('ALL')" class="kpi-card cursor-pointer bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-semibold text-muted uppercase tracking-wide">อาจารย์พิเศษรวม (ไม่ซ้ำคน)</p>
+                                    <h3 id="kpi-total-lecturers" class="text-3xl font-bold text-ink mt-1 font-disp">0</h3>
+                                    <p class="text-[11px] text-rose font-bold mt-2 flex items-center">
+                                        <i class="fa-solid fa-file-excel mr-1"></i> คลิกส่งออก Excel
+                                    </p>
+                                </div>
+                                <div class="p-3 bg-rose-tint text-rose rounded-xl"><i class="fa-solid fa-user-tie text-xl"></i></div>
+                            </div>
+                        </div>
+
+                        <div onclick="exportFilteredExcel('ปริญญาตรี')" class="kpi-card kpi-ink cursor-pointer bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-semibold text-muted uppercase tracking-wide">วุฒิปริญญาตรี (คน)</p>
+                                    <h3 id="kpi-bachelor-degree" class="text-3xl font-bold text-ink mt-1 font-disp">0</h3>
+                                    <p class="text-[11px] text-ink font-bold mt-2 flex items-center">
+                                        <i class="fa-solid fa-file-excel mr-1"></i> คลิกโหลด Excel ป.ตรี
+                                    </p>
+                                </div>
+                                <div class="p-3 bg-slate-100 text-ink rounded-xl"><i class="fa-solid fa-book-open text-xl"></i></div>
+                            </div>
+                        </div>
+
+                        <div onclick="exportFilteredExcel('ปริญญาโท')" class="kpi-card kpi-navy cursor-pointer bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-semibold text-muted uppercase tracking-wide">วุฒิปริญญาโท (คน)</p>
+                                    <h3 id="kpi-master-degree" class="text-3xl font-bold text-ink mt-1 font-disp">0</h3>
+                                    <p class="text-[11px] text-navy-light font-bold mt-2 flex items-center">
+                                        <i class="fa-solid fa-file-excel mr-1"></i> คลิกโหลด Excel ป.โท
+                                    </p>
+                                </div>
+                                <div class="p-3 bg-slate-100 text-navy rounded-xl"><i class="fa-solid fa-graduation-cap text-xl"></i></div>
+                            </div>
+                        </div>
+
+                        <div onclick="exportFilteredExcel('ปริญญาเอก')" class="kpi-card kpi-amber cursor-pointer bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-semibold text-muted uppercase tracking-wide">วุฒิปริญญาเอก (คน)</p>
+                                    <h3 id="kpi-doctor-degree" class="text-3xl font-bold text-ink mt-1 font-disp">0</h3>
+                                    <p class="text-[11px] text-amber font-bold mt-2 flex items-center">
+                                        <i class="fa-solid fa-file-excel mr-1"></i> คลิกโหลด Excel ป.เอก
+                                    </p>
+                                </div>
+                                <div class="p-3 bg-amber-tint text-amber rounded-xl"><i class="fa-solid fa-award text-xl"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card bg-white rounded-2xl border border-slate-200 p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 shadow-sm">
+                        <div class="lg:col-span-7 border-r-0 lg:border-r border-slate-200 lg:pr-6">
+                            <h3 class="text-base font-bold text-ink font-disp">แนวโน้มจำนวนอาจารย์พิเศษย้อนหลัง 3 ปี</h3>
+                            <p class="text-xs text-muted mb-4">เปรียบเทียบปีการศึกษา 2566 - 2568 (นับคนไม่ซ้ำ)</p>
+                            <div class="relative h-72">
+                                <canvas id="chart-yoy-trend"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-base font-bold text-ink font-disp">สัดส่วนอาจารย์ตามระดับคุณวุฒิ</h3>
+                                <p class="text-xs text-muted mb-4">จำแนกจากอาจารย์ทั้งหมด <span id="degree-total-headcount" class="font-bold text-ink">0</span> คน</p>
+                                
+                                <div class="w-full h-7 rounded-lg overflow-hidden flex shadow-inner bg-slate-100 my-4">
+                                    <div id="bar-degree-doc" class="bg-rose transition-all duration-500 flex items-center justify-center text-white text-xs font-bold" style="width: 0%"></div>
+                                    <div id="bar-degree-master" class="bg-navy transition-all duration-500 flex items-center justify-center text-white text-xs font-bold" style="width: 0%"></div>
+                                    <div id="bar-degree-bach" class="bg-amber transition-all duration-500 flex items-center justify-center text-white text-xs font-bold" style="width: 0%"></div>
+                                    <div id="bar-degree-other" class="bg-slate-400 transition-all duration-500 flex items-center justify-center text-white text-xs font-bold" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 pt-4 border-t border-slate-200">
+                                <div class="flex justify-between items-center text-xs">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-rose"></span>
+                                        <span class="font-semibold text-ink">ปริญญาเอก</span>
+                                    </div>
+                                    <div class="font-bold font-disp"><span id="stat-doc-count">0</span> คน &middot; <span id="stat-doc-pct" class="text-rose">0%</span></div>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-navy"></span>
+                                        <span class="font-semibold text-ink">ปริญญาโท</span>
+                                    </div>
+                                    <div class="font-bold font-disp"><span id="stat-master-count">0</span> คน &middot; <span id="stat-master-pct" class="text-navy-light">0%</span></div>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-amber"></span>
+                                        <span class="font-semibold text-ink">ปริญญาตรี</span>
+                                    </div>
+                                    <div class="font-bold font-disp"><span id="stat-bach-count">0</span> คน &middot; <span id="stat-bach-pct" class="text-amber">0%</span></div>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+                                        <span class="font-semibold text-ink">ไม่ระบุคุณวุฒิ</span>
+                                    </div>
+                                    <div class="font-bold font-disp"><span id="stat-other-count">0</span> คน &middot; <span id="stat-other-pct" class="text-slate-500">0%</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 02 วิเคราะห์ข้อมูลรายคณะ -->
+                <div>
+                    <div class="shead">
+                        <div class="snum">02</div>
+                        <div class="flex-1 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-xl font-bold text-ink font-disp">วิเคราะห์ข้อมูลรายคณะ</h2>
+                                <p class="text-xs text-muted">กราฟแนวนอนเปรียบเทียบอาจารย์พิเศษรายคณะ และตารางสรุปรายคณะ/คุณวุฒิ</p>
+                            </div>
+                            <span class="px-3 py-1 bg-sky-100 text-sky-800 text-xs font-bold rounded-full font-disp">เปรียบเทียบ</span>
+                        </div>
+                    </div>
+
+                    <div class="panel-card bg-white rounded-2xl border border-slate-200 p-6 mb-6 shadow-sm">
+                        <h3 class="text-base font-bold text-ink font-disp">จำนวนอาจารย์พิเศษแยกตามคณะ</h3>
+                        <p class="text-xs text-muted mb-4">เรียงจากมากไปน้อย &middot; ตัวเลขกำกับ = จำนวนอาจารย์พิเศษ (คนไม่ซ้ำ)</p>
+                        <div class="relative h-80">
+                            <canvas id="chart-faculty-horizontal"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-card bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-ink font-disp">ตารางสรุปจำนวนอาจารย์พิเศษจำแนกตามคณะและคุณวุฒิ</h3>
+                            <button type="button" onclick="exportFacultyDegreeExcel()" class="text-xs font-bold text-rose hover:underline font-disp">
+                                <i class="fa-solid fa-file-excel mr-1"></i> ส่งออก Excel
+                            </button>
+                        </div>
+                        <div class="max-h-80 overflow-y-auto custom-scrollbar">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-100 text-ink text-xs font-bold font-disp sticky top-0">
+                                    <tr>
+                                        <th class="py-2.5 px-4">คณะ / วิทยาลัย</th>
+                                        <th class="py-2.5 px-4 text-center">ปริญญาตรี (คน)</th>
+                                        <th class="py-2.5 px-4 text-center">ปริญญาโท (คน)</th>
+                                        <th class="py-2.5 px-4 text-center">ปริญญาเอก (คน)</th>
+                                        <th class="py-2.5 px-4 text-center">ไม่ระบุคุณวุฒิ</th>
+                                        <th class="py-2.5 px-4 text-center bg-navy text-white">รวมอาจารย์ (คนไม่ซ้ำ)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="faculty-degree-summary-body" class="divide-y divide-slate-100 text-xs font-medium"></tbody>
+                                <tfoot id="faculty-degree-summary-foot" class="bg-navy text-white font-bold text-xs sticky bottom-0"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 03 การกระจายตัวตามภาคการศึกษา -->
+                <div>
+                    <div class="shead">
+                        <div class="snum">03</div>
+                        <div class="flex-1 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-xl font-bold text-ink font-disp">การกระจายตัวตามภาคการศึกษา</h2>
+                                <p class="text-xs text-muted">เปรียบเทียบจำนวนภาระงานสอนในภาคเรียนที่ 1, 2 และภาคฤดูร้อน (Summer)</p>
+                            </div>
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-full font-disp">วิเคราะห์</span>
+                        </div>
+                    </div>
+
+                    <div class="panel-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                        <div class="relative h-64 flex items-center justify-center">
+                            <canvas id="chart-semester-bar"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 04 รายชื่ออาจารย์และภาระงานรวม -->
+                <div class="panel-card bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-ink font-disp">รายชื่ออาจารย์และภาระงานรวม</h3>
+                            <p class="text-xs text-muted">รวมกลุ่ม 1 อาจารย์ต่อ 1 แถว</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <select id="overview-table-year-filter" class="bg-white border border-slate-300 text-ink text-xs rounded-lg p-1.5 font-bold">
+                                <option value="ALL">ทุกปีการศึกษา</option>
+                                <option value="2566">ปี 2566</option>
+                                <option value="2567">ปี 2567</option>
+                                <option value="2568">ปี 2568</option>
+                            </select>
+                            <select id="overview-table-semester-filter" class="bg-white border border-slate-300 text-ink text-xs rounded-lg p-1.5 font-bold">
+                                <option value="ALL">ทุกภาคเรียน</option>
+                                <option value="1">ภาคเรียนที่ 1</option>
+                                <option value="2">ภาคเรียนที่ 2</option>
+                                <option value="S">ภาคฤดูร้อน (Summer)</option>
+                            </select>
+                            <span id="overview-table-badge" class="px-3 py-1 bg-rose-tint text-rose text-xs font-bold rounded-full font-disp">แสดง 0 คน</span>
+                        </div>
+                    </div>
+                    <div class="max-h-96 overflow-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-ink text-xs font-bold font-disp sticky top-0">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                                    <th class="py-2.5 px-3 min-w-[180px]">ชื่ออาจารย์ผู้สอน</th>
+                                    <th class="py-2.5 px-3 min-w-[200px]">คณะ</th>
+                                    <th class="py-2.5 px-3 min-w-[200px]">สาขาวิชา</th>
+                                    <th class="py-2.5 px-3 text-center bg-navy text-white min-w-[110px]">จำนวนรายวิชา</th>
+                                    <th class="py-2.5 px-3 text-center min-w-[110px]">ภาคการศึกษา</th>
+                                    <th class="py-2.5 px-3 text-center min-w-[110px]">ปีการศึกษา</th>
+                                    <th class="py-2.5 px-3 min-w-[250px]">หน่วยงานหรือสังกัด</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overview-table-body" class="divide-y divide-slate-200 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: FACULTY DEEP-DIVE -->
+            <div id="tab-faculty" class="tab-content hidden space-y-6">
+                <div class="panel-card bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 class="text-lg font-bold text-ink font-disp">วิเคราะห์เจาะลึกระดับคณะ (อาจารย์พิเศษ)</h2>
+                        <span id="fac-active-scope-badge" class="px-3 py-1 bg-navy text-white text-xs font-bold rounded-full font-disp">ขอบเขต: ทุกคณะ</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <select id="faculty-dropdown-select" class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-xl py-2 px-3 font-bold font-disp">
+                            <option value="ALL">ทุกคณะ (ทั้งหมดในระบบ)</option>
+                        </select>
+                        <select id="fac-year-select" class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-xl py-2 px-3 font-bold font-disp">
+                            <option value="ALL">ทุกปีการศึกษา</option>
+                            <option value="2566">ปี 2566</option>
+                            <option value="2567">ปี 2567</option>
+                            <option value="2568">ปี 2568</option>
+                        </select>
+                        <select id="fac-semester-select" class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-xl py-2 px-3 font-bold font-disp">
+                            <option value="ALL">ทุกภาคการศึกษา</option>
+                            <option value="1">ภาค 1</option>
+                            <option value="2">ภาค 2</option>
+                            <option value="S">Summer</option>
+                        </select>
+                        <input type="text" id="fac-table-search" placeholder="ค้นหาชื่ออาจารย์ / รายวิชา..." class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-xl py-2 px-3">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-ink text-xs font-bold font-disp">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                                    <th class="py-2.5 px-3">ชื่อ-สกุล อาจารย์</th>
+                                    <th class="py-2.5 px-3">คณะ</th>
+                                    <th class="py-2.5 px-3">สาขาวิชา</th>
+                                    <th class="py-2.5 px-3">คุณวุฒิ</th>
+                                    <th class="py-2.5 px-3">รายวิชาที่สอน</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faculty-lecturer-table-body" class="divide-y divide-slate-200 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: LECTURER SEARCH & MISSION ESTIMATION -->
+            <div id="tab-lecturer" class="tab-content hidden space-y-6">
+                <div class="panel-card bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-ink font-disp">ค้นหารายบุคคล & ประมาณการพันธกิจ (อาจารย์พิเศษ)</h2>
+                        <span id="search-result-count" class="px-3 py-1 bg-rose-tint text-rose text-xs font-bold rounded-full font-disp">พบ 0 รายการ</span>
+                    </div>
+                    <input type="text" id="lecturer-search-input" placeholder="พิมพ์ชื่อ-สกุลอาจารย์พิเศษ, รหัสวิชา หรือชื่อรายวิชา..." class="w-full px-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl">
+                    <div class="max-h-80 overflow-y-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-ink text-xs font-bold font-disp">
+                                <tr>
+                                    <th class="py-2 px-3">ปี/ภาค</th>
+                                    <th class="py-2 px-3">ชื่ออาจารย์</th>
+                                    <th class="py-2 px-3">คณะ</th>
+                                    <th class="py-2 px-3">สาขาวิชา</th>
+                                    <th class="py-2 px-3">รหัสวิชา - ชื่อวิชา</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lecturer-search-table-body" class="divide-y divide-slate-200 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel-card bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-ink font-disp">ตารางประมาณการพันธกิจอาจารย์พิเศษ</h3>
+                        <span id="mission-kpi-courses" class="text-xs text-rose font-bold">รวม 0 รายวิชา</span>
+                    </div>
+                    <div class="max-h-80 overflow-y-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-ink text-xs font-bold font-disp">
+                                <tr>
+                                    <th class="py-2 px-3 text-center w-12">ลำดับ</th>
+                                    <th class="py-2 px-3">ชื่ออาจารย์</th>
+                                    <th class="py-2 px-3">รหัสวิชา</th>
+                                    <th class="py-2 px-3">ชื่อวิชา</th>
+                                    <th class="py-2 px-3 text-center">กลุ่มเรียน</th>
+                                    <th class="py-2 px-3">หมายเหตุ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mission-table-body" class="divide-y divide-slate-200 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Drawer Body -->
-        <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-6" id="drawer-printable-content">
-            
-            <!-- Status Banner -->
-            <div id="drawer-status-card" class="p-4 rounded-xl border flex items-center justify-between">
-                <!-- JS Injected -->
+        <!-- ======================================================================
+             WRAPPER B: DASHBOARD อาจารย์ประจำ (ปรับเฉพาะส่วนนี้ ไม่แตะอาจารย์พิเศษ)
+             ====================================================================== -->
+        <div id="regular-dashboard-wrapper" class="hidden space-y-6">
+
+            <!-- แผงแสดงสถานะการนำเข้าข้อมูล 2 ส่วนแยกกัน (แสดงเฉพาะหน้า 1: ภาพรวม) -->
+            <section id="reg-import-status-section" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <!-- ส่วนที่ 1: สถานะการนำเข้ารายชื่ออาจารย์ประจำ -->
+                <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-navy flex flex-col justify-between gap-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-slate-100 text-navy flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-users-rectangle"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold text-navy uppercase font-disp">ส่วนที่ 1 : ฐานข้อมูลรายชื่ออาจารย์ประจำ</div>
+                                <h3 class="text-sm font-bold text-ink font-disp">ดึงข้อมูลจากส่วน “รวม / รายชื่ออาจารย์”</h3>
+                            </div>
+                        </div>
+                        <span id="reg-roster-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 font-disp whitespace-nowrap">
+                            รอการนำเข้า
+                        </span>
+                    </div>
+
+                    <div class="text-xs text-ink-soft space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div>จำนวนรายชื่อในฐานหลัก (ไม่ซ้ำบุคคล): <strong id="reg-roster-count-text" class="text-ink font-disp">0 คน</strong></div>
+                        <div>แหล่งที่มา: <span id="reg-roster-source-text" class="text-slate-600">ยังไม่มีข้อมูล</span></div>
+                        <div>อัปเดตล่าสุด: <span id="reg-roster-updated-text" class="text-slate-600">-</span></div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <button type="button" id="btn-sync-reg-roster-sheet" class="px-3 py-1.5 rounded-xl bg-navy hover:bg-ink text-white text-xs font-bold font-disp transition">
+                            <i class="fa-solid fa-cloud-arrow-down mr-1"></i> ดึงรายชื่อจาก Google Sheets
+                        </button>
+                        <button type="button" onclick="document.getElementById('btn-import-regular-roster').click()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-ink text-xs font-bold font-disp transition">
+                            <i class="fa-solid fa-file-excel mr-1 text-[#159A9C]"></i> เลือกไฟล์ Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ส่วนที่ 2: สถานะการนำเข้าพันธกิจของทุกคณะ -->
+                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-[#159A9C] flex flex-col justify-between gap-3">
+                    <div class="flex flex-wrap items-start justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-[#E6F6F6] text-[#159A9C] flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-file-circle-check"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold text-[#0F7678] uppercase font-disp">ส่วนที่ 2 : ข้อมูลพันธกิจของทุกคณะ</div>
+                                <h3 class="text-sm font-bold text-ink font-disp">ดึงเฉพาะส่วน “สรุปประมาณการพันธกิจและค่าสอน”</h3>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span id="reg-mission-success-badge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#E6F6F6] text-[#0F7678] font-disp">
+                                สำเร็จ: 0 ไฟล์/คณะ
+                            </span>
+                            <span id="reg-mission-error-badge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 font-disp">
+                                ผิดพลาด: 0
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-ink-soft bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <div>อัปเดตล่าสุด: <strong id="reg-mission-updated-text" class="text-ink">-</strong></div>
+                            <div id="reg-mission-summary-note" class="text-[11px] text-slate-500 mt-0.5">รอการนำเข้าข้อมูลพันธกิจจากไฟล์ของแต่ละคณะ หรือ Google Sheets</div>
+                        </div>
+                        <button type="button" id="btn-toggle-sheet-status-list" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-ink text-xs font-bold font-disp shrink-0">
+                            <i class="fa-solid fa-list-check mr-1 text-navy"></i> ตรวจสอบสถานะรายคณะ
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" id="btn-refresh-google-sheets" class="px-3 py-1.5 rounded-xl bg-navy hover:bg-ink text-white text-xs font-bold font-disp transition flex items-center">
+                                <i id="icon-refresh-sheets" class="fa-solid fa-arrows-rotate mr-1.5"></i>
+                                <span id="text-refresh-sheets">ดึงพันธกิจทุกคณะ (Google Sheets)</span>
+                            </button>
+                            <button type="button" onclick="document.getElementById('btn-import-regular-mission').click()" class="px-3 py-1.5 rounded-xl bg-[#159A9C] hover:bg-[#0F7678] text-white text-xs font-bold font-disp transition">
+                                <i class="fa-solid fa-upload mr-1"></i> อัปโหลดไฟล์ Excel รายคณะ
+                            </button>
+                        </div>
+                        <button type="button" id="btn-clear-regular-all" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 font-disp transition">
+                            <i class="fa-solid fa-trash-can mr-1"></i> ล้างข้อมูล อ.ประจำ
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ลิ้นชักแสดงสถานะการนำเข้ารายคณะ -->
+            <section id="reg-sheet-status-drawer" class="hidden bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 class="text-xs font-bold text-ink font-disp"><i class="fa-solid fa-building-circle-check text-navy mr-1.5"></i>รายละเอียดสถานะการนำเข้าข้อมูลพันธกิจรายคณะ</h4>
+                    <button type="button" onclick="document.getElementById('reg-sheet-status-drawer').classList.add('hidden')" class="text-xs text-slate-500 hover:text-ink"><i class="fa-solid fa-xmark"></i> ปิด</button>
+                </div>
+                <div id="reg-sheet-status-drawer-body" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                    <div class="text-slate-400">ยังไม่มีรายการตรวจสอบ</div>
+                </div>
+            </section>
+
+            <!-- ==================================================================
+                 เมนูที่ 1: ภาพรวม (Executive Summary & คะแนนความครบถ้วนระดับคณะ)
+                 ================================================================== -->
+            <div id="reg-tab-overview" class="reg-tab-panel space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <h2 class="text-lg font-bold text-ink font-disp">ภาพรวมระดับมหาวิทยาลัย (Executive Mission Overview)</h2>
+                        <p class="text-xs text-muted">สรุปยอดรวมทุกคณะแยกตามเกณฑ์พันธกิจ และจัดอันดับอัตราความครบถ้วนรายคณะ (คลิกการ์ด KPI เพื่อเปิดดูรายชื่อ)</p>
+                    </div>
+                    <button type="button" id="btn-export-regular-excel" class="px-3.5 py-2 bg-[#159A9C] hover:bg-[#0F7678] text-white text-xs font-bold rounded-xl font-disp transition self-start sm:self-center">
+                        <i class="fa-solid fa-file-excel mr-1.5"></i> ส่งออกรายงาน Excel
+                    </button>
+                </div>
+
+                <!-- 3 KPI Cards หลัก -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div id="reg-kpi-card-all" onclick="openKpiDetailModal('ALL')" class="kpi-card kpi-navy bg-white p-5 rounded-2xl border-2 border-navy/20 hover:border-navy shadow-sm cursor-pointer transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500 font-disp">1. จำนวนอาจารย์ประจำทั้งหมด (รวมทุกคณะ)</p>
+                                <h3 id="reg-kpi-total-lecturers" class="text-3xl font-extrabold text-navy mt-1.5 font-disp">0</h3>
+                                <p class="text-[11px] text-navy-light font-semibold mt-2">
+                                    <i class="fa-solid fa-table-list mr-1"></i> คลิกดูรายชื่อทั้งหมด
+                                </p>
+                            </div>
+                            <div class="p-3 bg-slate-100 text-navy rounded-xl shrink-0"><i class="fa-solid fa-users text-xl"></i></div>
+                        </div>
+                    </div>
+
+                    <div id="reg-kpi-card-complete" onclick="openKpiDetailModal('COMPLETE')" class="kpi-card bg-white p-5 rounded-2xl border-2 border-[#159A9C]/30 hover:border-[#159A9C] shadow-sm cursor-pointer transition" style="--rose:#159A9C;">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500 font-disp">2. สอนครบพันธกิจ (+) รวมทุกคณะ</p>
+                                <h3 id="reg-kpi-complete-lecturers" class="text-3xl font-extrabold text-[#159A9C] mt-1.5 font-disp">0</h3>
+                                <p id="reg-kpi-complete-pct" class="text-[11px] text-[#0F7678] font-semibold mt-2">
+                                    คิดเป็น 0% ของทั้งหมด
+                                </p>
+                            </div>
+                            <div class="p-3 bg-[#E6F6F6] text-[#159A9C] rounded-xl shrink-0"><i class="fa-solid fa-circle-check text-xl"></i></div>
+                        </div>
+                    </div>
+
+                    <div id="reg-kpi-card-incomplete" onclick="openKpiDetailModal('INCOMPLETE')" class="kpi-card kpi-red bg-white p-5 rounded-2xl border-2 border-red-200 hover:border-red-600 shadow-sm cursor-pointer transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500 font-disp">3. สอนไม่ครบพันธกิจ (-) รวมทุกคณะ</p>
+                                <h3 id="reg-kpi-incomplete-lecturers" class="text-3xl font-extrabold text-red-600 mt-1.5 font-disp">0</h3>
+                                <p id="reg-kpi-incomplete-pct" class="text-[11px] text-red-600 font-semibold mt-2">
+                                    คิดเป็น 0% ของทั้งหมด
+                                </p>
+                            </div>
+                            <div class="p-3 bg-red-50 text-red-600 rounded-xl shrink-0"><i class="fa-solid fa-circle-xmark text-xl"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2 กราฟหลักระดับผู้บริหาร -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <h3 class="text-base font-bold text-ink font-disp">สัดส่วนสถานะพันธกิจภาพรวมทั้งมหาวิทยาลัย</h3>
+                        <p class="text-xs text-muted mb-3">เปรียบเทียบสัดส่วนครบพันธกิจ (+), ไม่ครบ (-) และยังไม่ประเมิน</p>
+                        <div class="relative h-72 w-full">
+                            <canvas id="ov-chart-mission-donut"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <h3 class="text-base font-bold text-ink font-disp">อัตราการสอนครบพันธกิจ (%) แยกตามคณะ</h3>
+                        <p class="text-xs text-muted mb-3">เปรียบเทียบประสิทธิภาพการบรรลุเกณฑ์พันธกิจ (เรียงจาก % สูงสุดไปต่ำสุด)</p>
+                        <div class="relative h-72 w-full">
+                            <canvas id="ov-chart-faculty-rate"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ตารางสรุปภาพรวมระดับคณะ (1 แถว = 1 คณะ) -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-ink font-disp">ตารางสรุปผลการประเมินพันธกิจระดับคณะ (1 คณะ ต่อ 1 แถว)</h3>
+                            <p class="text-xs text-muted">แสดงจำนวนอาจารย์ประจำ ผลประเมินพันธกิจ และแถบแสดงร้อยละความสำเร็จของแต่ละคณะ</p>
+                        </div>
+                        <span id="reg-mission-table-badge" class="px-3 py-1 bg-navy text-white text-xs font-bold rounded-full font-disp self-start md:self-center">0 คณะ</span>
+                    </div>
+
+                    <div class="max-h-[460px] overflow-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-ink text-xs font-bold font-disp sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-3 px-4 text-center w-14">ลำดับ</th>
+                                    <th class="py-3 px-4 min-w-[220px]">คณะ / หน่วยงาน</th>
+                                    <th class="py-3 px-4 text-center">อ.ประจำทั้งหมด</th>
+                                    <th class="py-3 px-4 text-center text-[#0F7678]">ครบพันธกิจ (+)</th>
+                                    <th class="py-3 px-4 text-center text-red-600">ไม่ครบพันธกิจ (-)</th>
+                                    <th class="py-3 px-4 text-center text-slate-600">รอประเมิน/ยกเว้น</th>
+                                    <th class="py-3 px-4 min-w-[200px]">อัตราครบพันธกิจ (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reg-mission-table-body" class="divide-y divide-slate-200 text-xs">
+                                <tr>
+                                    <td colspan="7" class="text-center py-10 text-slate-400">
+                                        <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300 block"></i>
+                                        <p>ยังไม่มีข้อมูลอาจารย์ประจำ กรุณานำเข้าข้อมูลในส่วนด้านบน</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <!-- 4-Step Credit Breakdown -->
-            <div>
-                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">สรุปการคำนวณหน่วยกิตพันธกิจ</h4>
-                <div class="grid grid-cols-4 gap-2.5 text-center">
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                        <div class="text-[11px] text-slate-500 mb-1">ยอดยกมา</div>
-                        <div id="drawer-val-carry" class="text-base font-bold font-mono text-slate-800">0.00</div>
+            <!-- ==================================================================
+                 เมนูที่ 2: วิเคราะห์รายคณะ (Faculty Analysis — กราฟ 4 มิติ + Drill-down)
+                 ================================================================== -->
+            <div id="reg-tab-faculty" class="reg-tab-panel hidden space-y-6">
+                
+                <!-- 2.1 ตัวกรองข้อมูลร่วมกัน -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div>
+                            <h2 class="text-lg font-bold text-ink font-disp">วิเคราะห์เชิงลึกโครงสร้างคณะ สาขาวิชา และคุณวุฒิ (Faculty Deep-Dive)</h2>
+                            <p class="text-xs text-muted">เปรียบเทียบขนาดคณะ โครงสร้างคุณวุฒิ และสัดส่วนรายสาขาวิชา (คลิกที่กราฟหรือตัวเลขในตารางเพื่อเปิดดูรายชื่อเฉพาะกลุ่ม)</p>
+                        </div>
+                        <button type="button" id="btn-fa-reset-filters" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-ink text-xs font-bold font-disp transition self-start sm:self-auto">
+                            <i class="fa-solid fa-rotate-left mr-1.5"></i>ล้างตัวกรอง
+                        </button>
                     </div>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                        <div class="text-[11px] text-slate-500 mb-1">สอนจริง</div>
-                        <div id="drawer-val-actual" class="text-base font-bold font-mono text-slate-800">0.00</div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <div>
+                            <label for="fa-filter-faculty" class="block font-bold text-ink mb-1 font-disp">คณะ / หน่วยงาน</label>
+                            <select id="fa-filter-faculty" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp focus:border-navy focus:bg-white">
+                                <option value="ALL">ทุกคณะ (ทั้งหมด)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fa-filter-major" class="block font-bold text-ink mb-1 font-disp">สาขาวิชา / หลักสูตร</label>
+                            <select id="fa-filter-major" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp focus:border-navy focus:bg-white">
+                                <option value="ALL">ทุกสาขาวิชา</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fa-filter-status" class="block font-bold text-ink mb-1 font-disp">สถานะพันธกิจ</label>
+                            <select id="fa-filter-status" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp focus:border-navy focus:bg-white">
+                                <option value="ALL">ทุกสถานะพันธกิจ</option>
+                                <option value="COMPLETE">สอนครบพันธกิจ (+)</option>
+                                <option value="INCOMPLETE">สอนไม่ครบพันธกิจ (-)</option>
+                                <option value="PENDING">ไม่มีการระบุสถานะ (เว้นว่าง)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fa-filter-degree" class="block font-bold text-ink mb-1 font-disp">ระดับคุณวุฒิ</label>
+                            <select id="fa-filter-degree" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp focus:border-navy focus:bg-white">
+                                <option value="ALL">ทุกระดับคุณวุฒิ</option>
+                                <option value="ปริญญาเอก">ปริญญาเอก</option>
+                                <option value="ปริญญาโท">ปริญญาโท</option>
+                                <option value="ปริญญาตรี">ปริญญาตรี</option>
+                                <option value="ไม่ระบุคุณวุฒิ">ไม่ระบุคุณวุฒิ</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-                        <div class="text-[11px] text-slate-500 mb-1">เกณฑ์ประจำ</div>
-                        <div id="drawer-val-criteria" class="text-base font-bold font-mono text-slate-800">0.00</div>
+                </div>
+
+                <!-- 2.2 KPI Overview (3 Cards) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div onclick="window.filterFacultyDetailSection({ status: 'ALL', label: 'อาจารย์ประจำทั้งหมดในขอบเขตตัวกรอง' })" class="kpi-card kpi-navy bg-white p-5 rounded-2xl border border-slate-200 hover:border-navy shadow-sm cursor-pointer transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500 font-disp">จำนวนอาจารย์ประจำทั้งหมด</p>
+                                <h3 id="fa-kpi-total" class="text-3xl font-extrabold text-navy mt-1.5 font-disp">0</h3>
+                                <p class="text-[11px] text-navy-light font-semibold mt-2"><i class="fa-solid fa-magnifying-glass-plus mr-1"></i>คลิกเจาะดูรายชื่อ</p>
+                            </div>
+                            <div class="p-3 bg-slate-100 text-navy rounded-xl shrink-0"><i class="fa-solid fa-users text-xl"></i></div>
+                        </div>
                     </div>
-                    <div id="drawer-box-net" class="p-3 rounded-xl border">
-                        <div class="text-[11px] font-semibold mb-1">ยอดยกไป</div>
-                        <div id="drawer-val-net" class="text-base font-bold font-mono">0.00</div>
+
+                    <div onclick="window.filterFacultyDetailSection({ status: 'COMPLETE', label: 'อาจารย์สอนครบพันธกิจ (+)' })" class="kpi-card bg-white p-5 rounded-2xl border border-slate-200 hover:border-[#159A9C] shadow-sm cursor-pointer transition" style="--rose:#159A9C;">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500 font-disp">สอนครบพันธกิจ (+)</p>
+                                <h3 id="fa-kpi-complete" class="text-3xl font-extrabold text-[#159A9C] mt-1.5 font-disp">0</h3>
+                                <p class="text-[11px] text-[#0F7678] font-semibold mt-2"><i class="fa-solid fa-circle-check mr-1"></i>คลิกเจาะดูกลุ่ม (+)</p>
+                            </div>
+                            <div class="p-3 bg-[#E6F6F6] text-[#159A9C] rounded-xl shrink-0"><i class="fa-solid fa-circle-check text-xl"></i></div>
+                        </div>
+                    </div>
+
+                    <div onclick="window.filterFacultyDetailSection({ status: 'INCOMPLETE', label: 'อาจารย์สอนไม่ครบพันธกิจ (-)' })" class="kpi-card kpi-red bg-white p-5 rounded-2xl border border-slate-200 hover:border-red-600 shadow-sm cursor-pointer transition">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-500 font-disp">สอนไม่ครบพันธกิจ (-)</p>
+                                <h3 id="fa-kpi-incomplete" class="text-3xl font-extrabold text-red-600 mt-1.5 font-disp">0</h3>
+                                <p class="text-[11px] text-red-600 font-semibold mt-2"><i class="fa-solid fa-circle-xmark mr-1"></i>คลิกเจาะดูกลุ่ม (-)</p>
+                            </div>
+                            <div class="p-3 bg-red-50 text-red-600 rounded-xl shrink-0"><i class="fa-solid fa-circle-xmark text-xl"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2.3 กราฟวิเคราะห์ข้อมูล 4 ประเภท -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-base font-bold text-ink font-disp">1. เปรียบเทียบจำนวนอาจารย์แต่ละคณะ (Faculty Comparison)</h3>
+                                <p class="text-xs text-muted">คลิกแท่งกราฟเพื่อเจาะดูรายชื่ออาจารย์ของคณะนั้น</p>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-navy text-[11px] font-bold font-disp">Bar Chart</span>
+                        </div>
+                        <div class="relative h-80 w-full">
+                            <canvas id="fa-chart-faculty-comparison"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-base font-bold text-ink font-disp">2. วิเคราะห์สถานะพันธกิจรายคณะ (Mission Status Analysis)</h3>
+                                <p class="text-xs text-muted">เปรียบเทียบจำนวนคนครบ (+) และไม่ครบ (-) รายคณะ</p>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-[#E6F6F6] text-[#0F7678] text-[11px] font-bold font-disp">Stacked Bar</span>
+                        </div>
+                        <div class="relative h-80 w-full">
+                            <canvas id="fa-chart-mission-stacked"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-base font-bold text-ink font-disp">3. สัดส่วนระดับคุณวุฒิอาจารย์ (Qualification Analysis)</h3>
+                                <p class="text-xs text-muted">ปริญญาเอก / ปริญญาโท / ปริญญาตรี / ไม่ระบุคุณวุฒิ</p>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-navy text-[11px] font-bold font-disp">Donut Chart</span>
+                        </div>
+                        <div class="relative h-80 w-full">
+                            <canvas id="fa-chart-qualification-donut"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                            <div>
+                                <h3 class="text-base font-bold text-ink font-disp">4. จำนวนอาจารย์แยกตามสาขา (Major Analysis)</h3>
+                                <p class="text-xs text-muted">15 อันดับสาขาวิชาที่มีอาจารย์ประจำมากที่สุด</p>
+                            </div>
+                            <select id="fa-major-chart-faculty-select" class="bg-slate-50 border border-slate-300 text-ink text-xs rounded-xl py-1.5 px-2.5 font-bold font-disp max-w-[220px]">
+                                <option value="ALL">แสดงทุกคณะ</option>
+                            </select>
+                        </div>
+                        <div class="relative h-80 w-full">
+                            <canvas id="fa-chart-major-horizontal"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2.4 ตารางเปรียบเทียบคุณวุฒิและพันธกิจรายคณะ -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-base font-bold text-ink font-disp">ตารางเมทริกซ์เปรียบเทียบคุณวุฒิและพันธกิจรายคณะ</h3>
+                            <p class="text-xs text-muted">คลิกที่ตัวเลขในตารางเพื่อเจาะดูรายชื่อเฉพาะกลุ่มด้านล่าง</p>
+                        </div>
+                        <button type="button" id="btn-fa-export-comparison" class="px-3 py-1.5 rounded-xl bg-navy hover:bg-ink text-white text-xs font-bold font-disp transition self-start sm:self-auto">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i>ส่งออกตารางเปรียบเทียบ
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-navy-900 text-white text-xs font-bold font-disp">
+                                <tr>
+                                    <th class="py-3 px-3 text-center w-14">ลำดับ</th>
+                                    <th class="py-3 px-4 min-w-[220px]">คณะ</th>
+                                    <th class="py-3 px-3 text-center bg-navy">ทั้งหมด</th>
+                                    <th class="py-3 px-3 text-center bg-[#159A9C]">ครบ (+)</th>
+                                    <th class="py-3 px-3 text-center bg-red-700">ไม่ครบ (-)</th>
+                                    <th class="py-3 px-3 text-center bg-slate-600">ไม่ระบุ</th>
+                                    <th class="py-3 px-3 text-center">ป.ตรี</th>
+                                    <th class="py-3 px-3 text-center">ป.โท</th>
+                                    <th class="py-3 px-3 text-center">ป.เอก</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fa-comparison-table-body" class="divide-y divide-slate-200 text-xs"></tbody>
+                            <tfoot id="fa-comparison-table-foot" class="bg-slate-100 text-ink font-extrabold text-xs border-t-2 border-navy"></tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2.5 ลิ้นชัก Drill-down -->
+                <div id="fa-detail-section" class="hidden bg-white rounded-2xl border-2 border-[#159A9C] overflow-hidden shadow-lg">
+                    <div class="p-4 bg-[#E6F6F6] border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-navy text-white text-[11px] font-bold font-disp">ผลลัพธ์การเจาะข้อมูล (Drill-Down)</span>
+                                <h3 id="fa-detail-heading" class="text-base font-bold text-ink font-disp">รายชื่ออาจารย์ประจำ</h3>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <input type="text" id="fa-detail-search-input" placeholder="กรองชื่อเพิ่มเติม..." class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl focus:border-navy focus:outline-none">
+                            <span id="fa-detail-count-badge" class="px-3 py-1 rounded-full bg-[#159A9C] text-white text-xs font-bold font-disp">0 คน</span>
+                            <button type="button" id="btn-fa-close-drilldown" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-red-50 hover:text-red-600 text-ink text-xs font-bold font-disp">
+                                <i class="fa-solid fa-xmark mr-1"></i>ปิดรายการเจาะข้อมูล
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="max-h-[420px] overflow-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-ink text-xs font-bold font-disp sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-3 px-3 text-center w-14">ลำดับ</th>
+                                    <th class="py-3 px-4 min-w-[200px]">ชื่อ-นามสกุล</th>
+                                    <th class="py-3 px-4 min-w-[200px]">คณะ</th>
+                                    <th class="py-3 px-4 min-w-[180px]">สาขา</th>
+                                    <th class="py-3 px-4 min-w-[130px]">คุณวุฒิ</th>
+                                    <th class="py-3 px-4 text-center min-w-[170px] bg-navy text-white">สถานะพันธกิจ</th>
+                                    <th class="py-3 px-4 min-w-[220px]">หมายเหตุ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fa-detail-table-body" class="divide-y divide-slate-200 text-xs"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Original Remark Box -->
-            <div>
-                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">หมายเหตุจากฝ่ายวิชาการ (ต้นฉบับ Excel)</h4>
-                <div id="drawer-raw-remark" class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 text-xs text-slate-700 leading-relaxed">
-                    -
+            <!-- ==================================================================
+                 เมนูที่ 3: ค้นหารายบุคคล (Lecturer Search — ทะเบียนประวัติ & ดูโปรไฟล์รายคน)
+                 ================================================================== -->
+            <div id="reg-tab-lecturer" class="reg-tab-panel hidden space-y-5">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h2 class="text-lg font-bold text-ink font-disp">ทะเบียนประวัติและค้นหาอาจารย์ประจำรายบุคคล (Lecturer Directory)</h2>
+                            <p class="text-xs text-muted">ค้นหาและตรวจสอบประวัติรายบุคคล คลิกปุ่ม <strong>“ดูโปรไฟล์ & ตารางสอน”</strong> เพื่อดูข้อมูลพันธกิจควบคู่กับตารางสอน</p>
+                        </div>
+                        <span id="reg-search-tab-count" class="px-3 py-1 rounded-full bg-navy text-white text-xs font-bold font-disp self-start sm:self-auto">พบ 0 คน</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+                        <div class="md:col-span-4 relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="reg-person-search-input" placeholder="พิมพ์ชื่อ-นามสกุล, สาขา หรือหมายเหตุ..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:border-navy focus:bg-white focus:outline-none">
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="reg-person-faculty-filter" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2.5 px-3 font-bold font-disp">
+                                <option value="ALL">ทุกคณะ</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <select id="reg-person-degree-filter" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2.5 px-3 font-bold font-disp">
+                                <option value="ALL">ทุกคุณวุฒิ</option>
+                                <option value="ปริญญาเอก">ปริญญาเอก</option>
+                                <option value="ปริญญาโท">ปริญญาโท</option>
+                                <option value="ปริญญาตรี">ปริญญาตรี</option>
+                                <option value="ไม่ระบุคุณวุฒิ">ไม่ระบุคุณวุฒิ</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="reg-person-status-filter" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2.5 px-3 font-bold font-disp">
+                                <option value="ALL">ทุกสถานะพันธกิจ</option>
+                                <option value="COMPLETE">สอนครบพันธกิจ (+)</option>
+                                <option value="INCOMPLETE">สอนไม่ครบพันธกิจ (-)</option>
+                                <option value="NO_MISSION">ไม่มีพันธกิจการสอน</option>
+                                <option value="PENDING">ไม่มีการระบุสถานะ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="max-h-[540px] overflow-auto custom-scrollbar border border-slate-200 rounded-xl">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-ink text-xs font-bold font-disp sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-3 px-3 text-center w-14">ลำดับ</th>
+                                    <th class="py-3 px-4">ชื่อ-นามสกุล</th>
+                                    <th class="py-3 px-4">คณะ</th>
+                                    <th class="py-3 px-4">สาขา</th>
+                                    <th class="py-3 px-4">คุณวุฒิ</th>
+                                    <th class="py-3 px-4 text-center bg-navy text-white">สถานะพันธกิจ</th>
+                                    <th class="py-3 px-4 text-center">ข้อมูลเชิงลึก</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reg-person-search-tbody" class="divide-y divide-slate-200 text-xs"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- Assigned Courses List -->
-            <div>
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">รายวิชาที่รับผิดชอบสอน</h4>
-                    <span id="drawer-course-count" class="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">0 รายวิชา</span>
+            <!-- ==================================================================
+                 เมนูที่ 4: ตารางสอนอาจารย์ (Teaching Schedule)
+                 ================================================================== -->
+            <div id="reg-tab-schedule" class="reg-tab-panel hidden space-y-6">
+                
+                <!-- 4.1 ระบบอัปโหลดไฟล์ภายในเมนูตารางสอนเอง -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm border-l-4 border-l-navy space-y-4">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-[#E6F6F6] text-[#0F7678] text-[11px] font-bold font-disp">โมดูลตารางสอนแยกอิสระ</span>
+                                <h2 class="text-lg font-bold text-ink font-disp">ระบบจัดการและวิเคราะห์ตารางสอนอาจารย์ประจำ (Teaching Schedule)</h2>
+                            </div>
+                            <p class="text-xs text-muted mt-0.5">อัปโหลดไฟล์ Excel (.xlsx / .xls) หรือ PDF (.pdf) ได้หลายไฟล์พร้อมกันหรือแยกตามคณะ — ข้อมูลตารางสอนแยกออกจากฐานพันธกิจอย่างสมบูรณ์</p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <input type="file" id="ts-excel-file-input" accept=".xlsx, .xls, .pdf" multiple class="hidden">
+                            <button type="button" id="btn-ts-upload-excel" class="px-3.5 py-2 rounded-xl bg-[#159A9C] hover:bg-[#0F7678] text-white text-xs font-bold font-disp shadow-sm transition flex items-center">
+                                <i class="fa-solid fa-file-import mr-1.5"></i> นำเข้าไฟล์ตารางสอน (Excel / PDF)
+                            </button>
+                            <button type="button" id="btn-ts-refresh" class="px-3 py-2 rounded-xl bg-navy hover:bg-ink text-white text-xs font-bold font-disp shadow-sm transition flex items-center">
+                                <i class="fa-solid fa-arrows-rotate mr-1.5"></i> Refresh Data
+                            </button>
+                            <button type="button" id="btn-ts-clear" class="px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold font-disp transition flex items-center">
+                                <i class="fa-solid fa-trash-can mr-1.5"></i> ล้างข้อมูลที่นำเข้า
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <span>รายการสอนทั้งหมด: <strong id="ts-total-records" class="text-navy font-disp">0 รายการ</strong></span>
+                            <span>จำนวนอาจารย์ผู้สอน: <strong id="ts-total-lecturers" class="text-[#159A9C] font-disp">0 คน</strong></span>
+                            <span>นำเข้าล่าสุด: <strong id="ts-last-updated" class="text-ink">-</strong></span>
+                        </div>
+                        <button type="button" id="btn-ts-toggle-log" class="text-navy font-bold hover:underline font-disp self-start md:self-auto">
+                            <i class="fa-solid fa-clipboard-list mr-1"></i> ดูสถานะไฟล์ที่นำเข้า (<span id="ts-file-count">0</span> ไฟล์)
+                        </button>
+                    </div>
+
+                    <div id="ts-import-log-panel" class="hidden space-y-2 border-t border-slate-200 pt-3 text-xs">
+                        <div class="font-bold text-ink font-disp">ประวัติและสถานะไฟล์ตารางสอนที่นำเข้า:</div>
+                        <div id="ts-import-log-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            <div class="text-slate-400">ยังไม่มีไฟล์ตารางสอนที่นำเข้า</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="border border-slate-200 rounded-xl overflow-hidden">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
-                            <tr>
-                                <th class="py-2.5 px-3 font-semibold">รหัสวิชา</th>
-                                <th class="py-2.5 px-3 font-semibold">ชื่อรายวิชา</th>
-                                <th class="py-2.5 px-2 font-semibold text-center">วัน/เวลา</th>
-                                <th class="py-2.5 px-2 font-semibold text-center">กลุ่ม</th>
-                                <th class="py-2.5 px-3 font-semibold text-right">นก.</th>
-                            </tr>
-                        </thead>
-                        <tbody id="drawer-courses-body" class="divide-y divide-slate-100">
-                            <!-- JS Render -->
-                        </tbody>
-                    </table>
+
+                <!-- 4.3 ระบบค้นหาและตัวกรองตารางสอน -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                        <div>
+                            <label for="ts-filter-faculty" class="block font-bold text-ink mb-1 font-disp">คณะ</label>
+                            <select id="ts-filter-faculty" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp">
+                                <option value="ALL">ทุกคณะ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ts-filter-major" class="block font-bold text-ink mb-1 font-disp">สาขา</label>
+                            <select id="ts-filter-major" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp">
+                                <option value="ALL">ทุกสาขา</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ts-filter-year" class="block font-bold text-ink mb-1 font-disp">ปีการศึกษา</label>
+                            <select id="ts-filter-year" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp">
+                                <option value="ALL">ทุกปีการศึกษา</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ts-filter-semester" class="block font-bold text-ink mb-1 font-disp">ภาคการศึกษา</label>
+                            <select id="ts-filter-semester" class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 font-bold font-disp">
+                                <option value="ALL">ทุกภาคการศึกษา</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ts-filter-search" class="block font-bold text-ink mb-1 font-disp">ค้นหาชื่ออาจารย์ / รายวิชา</label>
+                            <input type="text" id="ts-filter-search" placeholder="พิมพ์ชื่ออาจารย์หรือรหัสวิชา..." class="w-full bg-slate-50 border border-slate-300 text-ink rounded-xl py-2 px-3 focus:bg-white focus:border-navy focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                        <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 self-start">
+                            <button type="button" id="btn-ts-view-weekly" class="ts-view-btn active px-3.5 py-1.5 rounded-lg bg-navy text-white text-xs font-bold font-disp transition">
+                                <i class="fa-solid fa-table-cells mr-1.5"></i>มุมมองที่ 1: ตารางสอนรายบุคคล (รายสัปดาห์)
+                            </button>
+                            <button type="button" id="btn-ts-view-list" class="ts-view-btn px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-ink text-xs font-bold font-disp transition">
+                                <i class="fa-solid fa-list-ul mr-1.5"></i>มุมมองที่ 2: ตารางข้อมูลแบบรายการ
+                            </button>
+                        </div>
+
+                        <div id="ts-weekly-person-picker" class="flex items-center gap-2 text-xs">
+                            <label for="ts-select-lecturer" class="font-bold text-ink font-disp whitespace-nowrap">เลือกชื่ออาจารย์:</label>
+                            <select id="ts-select-lecturer" class="bg-slate-50 border border-slate-300 text-ink rounded-xl py-1.5 px-3 font-bold font-disp min-w-[230px]">
+                                <option value="">-- กรุณานำเข้าไฟล์ตารางสอน --</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- มุมมองที่ 1: ตารางสอนรายสัปดาห์รายบุคคล -->
+                <div id="ts-panel-weekly" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h3 id="ts-weekly-title" class="text-base font-bold text-ink font-disp">ตารางสอนรายสัปดาห์</h3>
+                            <p id="ts-weekly-subtitle" class="text-xs text-muted">เลือกชื่ออาจารย์ผู้สอนด้านบนเพื่อแสดงตารางสอนแยกตามวันและช่วงเวลา</p>
+                        </div>
+                        <span id="ts-weekly-badge" class="px-3 py-1 rounded-full bg-[#E6F6F6] text-[#0F7678] text-xs font-bold font-disp self-start sm:self-auto">0 กลุ่มเรียน</span>
+                    </div>
+
+                    <div id="ts-weekly-grid-container" class="overflow-x-auto custom-scrollbar">
+                        <div class="text-center py-12 text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">
+                            ยังไม่มีข้อมูลตารางสอน กรุณากดปุ่ม <strong>“นำเข้าไฟล์ตารางสอน (Excel / PDF)”</strong> ด้านบนเพื่ออัปโหลดไฟล์
+                        </div>
+                    </div>
+                </div>
+
+                <!-- มุมมองที่ 2: ตารางข้อมูลแบบรายการ -->
+                <div id="ts-panel-list" class="hidden bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-ink font-disp">รายการตารางสอนทั้งหมด (แสดงครบทุกกลุ่มเรียน)</h3>
+                            <p class="text-xs text-muted">ข้อมูลตรงตามไฟล์ต้นฉบับ ไม่มีการสร้างข้อมูลขึ้นเอง</p>
+                        </div>
+                        <span id="ts-list-count-badge" class="px-3 py-1 rounded-full bg-navy text-white text-xs font-bold font-disp">0 รายการ</span>
+                    </div>
+                    <div class="max-h-[520px] overflow-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-navy-900 text-white text-xs font-bold font-disp sticky top-0">
+                                <tr>
+                                    <th class="py-3 px-3 text-center w-14">ลำดับ</th>
+                                    <th class="py-3 px-3 min-w-[95px]">วัน</th>
+                                    <th class="py-3 px-3 min-w-[120px]">เวลา</th>
+                                    <th class="py-3 px-3 min-w-[110px]">รหัสวิชา</th>
+                                    <th class="py-3 px-4 min-w-[210px]">ชื่อวิชา</th>
+                                    <th class="py-3 px-3 text-center min-w-[90px]">กลุ่มเรียน</th>
+                                    <th class="py-3 px-3 min-w-[110px]">ห้องเรียน</th>
+                                    <th class="py-3 px-4 min-w-[190px]">ผู้สอน</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ts-list-tbody" class="divide-y divide-slate-200 text-xs">
+                                <tr>
+                                    <td colspan="8" class="text-center py-10 text-slate-400">ยังไม่มีข้อมูลตารางสอน</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
         </div>
+    </main>
 
-        <!-- Drawer Footer -->
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center shrink-0">
-            <button id="btn-drawer-print" class="bg-spu-navy hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-2xs transition">
-                <i class="fa-solid fa-print"></i> พิมพ์ใบสรุปรายบุคคล
-            </button>
-            <button id="btn-close-drawer-footer" class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-semibold transition">
-                ปิดหน้าต่าง
-            </button>
+    <!-- ==========================================================================
+         MODAL 1: รายละเอียดรายชื่ออาจารย์เมื่อคลิกการ์ด KPI
+         ========================================================================== -->
+    <div id="kpi-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[88vh] flex flex-col overflow-hidden">
+            <div class="p-4 sm:p-5 bg-navy-900 text-white flex items-center justify-between">
+                <div>
+                    <h3 id="kpi-modal-title" class="text-base sm:text-lg font-bold font-disp">รายชื่ออาจารย์ประจำ</h3>
+                    <p id="kpi-modal-subtitle" class="text-xs text-slate-300 mt-0.5">แสดงรายชื่อตามสถานะที่เลือก</p>
+                </div>
+                <button type="button" id="btn-close-kpi-modal" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
+                <input type="text" id="kpi-modal-search" placeholder="ค้นหาชื่อ-นามสกุล, คณะ หรือหมายเหตุ..." class="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl focus:border-navy focus:outline-none">
+                <span id="kpi-modal-count-badge" class="px-3 py-1 rounded-full bg-[#159A9C] text-white text-xs font-bold font-disp">0 คน</span>
+            </div>
+            <div class="flex-1 overflow-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-100 text-ink text-xs font-bold font-disp sticky top-0">
+                        <tr>
+                            <th class="py-2.5 px-3 text-center w-14">ลำดับ</th>
+                            <th class="py-2.5 px-4">ชื่อ-นามสกุล</th>
+                            <th class="py-2.5 px-4">คณะ</th>
+                            <th class="py-2.5 px-4 text-center">สถานะพันธกิจ</th>
+                            <th class="py-2.5 px-4">หมายเหตุ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kpi-modal-tbody" class="divide-y divide-slate-200 text-xs"></tbody>
+                </table>
+            </div>
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button type="button" id="btn-close-kpi-modal-footer" class="px-4 py-1.5 rounded-xl bg-navy text-white text-xs font-bold font-disp">ปิดหน้าต่าง</button>
+            </div>
         </div>
+    </div>
 
-    </aside>
+    <!-- ==========================================================================
+         MODAL 2: ประวัติและตารางสอนรายบุคคล (จากหน้าค้นหารายบุคคล)
+         ========================================================================== -->
+    <div id="regular-lecturer-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-navy-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[88vh] flex flex-col overflow-hidden">
+            <div class="p-4 sm:p-5 bg-navy-900 text-white flex items-center justify-between">
+                <div>
+                    <h3 id="reg-modal-name" class="text-base sm:text-lg font-bold font-disp">ชื่ออาจารย์</h3>
+                    <p id="reg-modal-faculty" class="text-xs text-slate-300 mt-0.5">คณะ / สาขาวิชา</p>
+                </div>
+                <button type="button" id="btn-close-reg-modal" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="reg-modal-detail-body" class="p-5 overflow-y-auto space-y-4 text-xs"></div>
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button type="button" id="btn-close-reg-modal-footer" class="px-4 py-1.5 rounded-xl bg-navy text-white text-xs font-bold font-disp">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Application JavaScript Logic -->
     <script src="app.js"></script>
+    <script src="Regular.js"></script>
 </body>
 </html>
